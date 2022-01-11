@@ -14,8 +14,10 @@ public interface UserService {
 
     List<User> findByUsernameIn(List<String> usernames);
 
-    User updateProfilePicture(String uri, String id);
+    User updateProfilePicture(String uri, Long id);
 
     UserSummary convertTo(User user);
+
+    User saveUser(User user);
 
 }

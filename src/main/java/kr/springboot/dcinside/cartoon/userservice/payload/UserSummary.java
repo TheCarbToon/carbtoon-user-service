@@ -8,13 +8,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserSummary {
 
-    private String id;
+    private Long id;
     private String username;
     private String name;
     private String profilePicture;
 
     @Builder
-    public UserSummary(String id, String username, String name, String profilePicture) {
+    public UserSummary(Long id, String username, String name, String profilePicture) {
         this.id = id;
         this.username = username;
         this.name = name;

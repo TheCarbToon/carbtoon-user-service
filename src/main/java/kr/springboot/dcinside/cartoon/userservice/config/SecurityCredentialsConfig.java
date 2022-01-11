@@ -65,7 +65,7 @@ public class SecurityCredentialsConfig extends WebSecurityConfigurerAdapter {
         auth.inMemoryAuthentication()
                 .withUser(serviceUsername)
                 .password(passwordEncoder().encode(servicePassword))
-                .roles(Role.SERVICE.getName());
+                .roles(Role.SERVICE.name());
 
         // Configure DB authentication provider for user accounts
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());

@@ -5,7 +5,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CartoonUserDetails extends User implements UserDetails {
 
@@ -15,10 +16,9 @@ public class CartoonUserDetails extends User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
-                .collect(Collectors.toSet());
+        Set<SimpleGrantedAuthority> role = new HashSet<>();
+        role.add(new SimpleGrantedAuthority("ROLE_" + getRoles().name()));
+        return role;
     }
 
     @Override

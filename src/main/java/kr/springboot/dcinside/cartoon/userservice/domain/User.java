@@ -3,23 +3,25 @@ package kr.springboot.dcinside.cartoon.userservice.domain;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
+@Entity
 public class User {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String authId;
 
     @NotBlank
     @Size(max = 25)
@@ -34,15 +36,19 @@ public class User {
     @Email
     private String email;
 
-    @CreatedDate
-    private Instant createdAt;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    private Instant updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     private boolean active;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Profile userProfile;
-    private Set<Role> roles;
+
+    @Enumerated(EnumType.STRING)
+    private Role roles;
 
     public void setUserProfile(Profile userProfile) {
         this.userProfile = userProfile;
@@ -50,6 +56,7 @@ public class User {
 
     public User(User user) {
         this.id = user.id;
+        this.authId = user.authId;
         this.username = user.username;
         this.password = user.password;
         this.email = user.email;
@@ -60,17 +67,10 @@ public class User {
         this.roles = user.roles;
     }
 
-    public User(String username, String password, String email) {
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.active = true;
-        this.roles = new HashSet<>() {{ new Role("USER"); }};
-    }
-
     @Builder
-    public User(String id, String username, String password, String email, Instant createdAt, Instant updatedAt, boolean active, Profile userProfile, Set<Role> roles) {
+    public User(Long id, String authId, String username, String password, String email, LocalDateTime createdAt, LocalDateTime updatedAt, boolean active, Profile userProfile, Role roles) {
         this.id = id;
+        this.authId = authId;
         this.username = username;
         this.password = password;
         this.email = email;
@@ -80,4 +80,5 @@ public class User {
         this.userProfile = userProfile;
         this.roles = roles;
     }
+
 }

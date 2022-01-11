@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 public class UserEventPayload {
 
-    private String id;
+    private Long id;
     private String username;
     private String email;
     private String displayName;
@@ -20,7 +20,7 @@ public class UserEventPayload {
     private UserEventType eventType;
 
     @Builder
-    public UserEventPayload(String id, String username, String email, String displayName, String profilePictureUrl, String oldProfilePicUrl, UserEventType eventType) {
+    public UserEventPayload(Long id, String username, String email, String displayName, String profilePictureUrl, String oldProfilePicUrl, UserEventType eventType) {
         this.id = id;
         this.username = username;
         this.email = email;

@@ -10,6 +10,7 @@ import kr.springboot.dcinside.cartoon.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateProfilePicture(String uri, String id) {
+    public User updateProfilePicture(String uri, Long id) {
         log.info("update profile picture {} for user {}", uri, id);
 
         return userRepository
@@ -60,6 +61,14 @@ public class UserServiceImpl implements UserService {
                 })
                 .orElseThrow(() ->
                         new ResourceNotFoundException(String.format("user id %s not found", id)));
+    }
+
+    @Transactional
+    @Override
+    public User saveUser(User user) {
+        user.getUserProfile().setUser(user);
+        user = userRepository.save(user);
+        return user;
     }
 
     @Override
