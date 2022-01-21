@@ -25,7 +25,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     @Override
     public Claims getClaimsFromJWT(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(Keys.secretKeyFor(SignatureAlgorithm.HS512))
+                .setSigningKey(jwtConfig.getKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -35,7 +35,7 @@ public class JwtTokenProviderImpl implements JwtTokenProvider {
     public boolean validateToken(String authToken) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(Keys.secretKeyFor(SignatureAlgorithm.HS512))
+                    .setSigningKey(jwtConfig.getKey())
                     .build()
                     .parseClaimsJws(authToken);
             return true;

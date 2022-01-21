@@ -27,9 +27,9 @@ public class SecurityCredentialsConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
-    private final JwtConfig jwtConfig;
+//    private final JwtConfig jwtConfig;
 
-    private final JwtTokenProvider tokenProvider;
+//    private final JwtTokenProvider tokenProvider;
 
     private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
 
@@ -49,9 +49,7 @@ public class SecurityCredentialsConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(jwtTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/users/register").permitAll()
-                .antMatchers(HttpMethod.POST, "/users/login").permitAll()
-                .antMatchers(HttpMethod.POST, "/users").anonymous()
+                .antMatchers(HttpMethod.POST, "/users/create").permitAll()
                 .anyRequest().authenticated();
     }
 

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Entity
+@NamedEntityGraph
 public class User {
 
     @Id

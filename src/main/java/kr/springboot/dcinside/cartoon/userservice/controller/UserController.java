@@ -1,13 +1,14 @@
 package kr.springboot.dcinside.cartoon.userservice.controller;
 
 import kr.springboot.dcinside.cartoon.userservice.domain.CartoonUserDetails;
+import kr.springboot.dcinside.cartoon.userservice.domain.User;
+import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.AuthUserCreateFeignRequest;
 import kr.springboot.dcinside.cartoon.userservice.dto.response.ApiResponse;
 import kr.springboot.dcinside.cartoon.userservice.exception.ResourceNotFoundException;
 import kr.springboot.dcinside.cartoon.userservice.payload.*;
 import kr.springboot.dcinside.cartoon.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,63 +26,102 @@ public class UserController {
 
     private final UserService userService;
 
-    @PutMapping("/users/me/picture")
+    /**
+     * 프로필 이미지 업데이트
+     *
+     * @param profilePicture
+     * @param userDetails
+     * @return
+     */
+    @PutMapping("/picture")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity <?> updateProfilePicture(
+    public ResponseEntity<?> updateProfilePicture(
             @RequestBody String profilePicture,
             @AuthenticationPrincipal CartoonUserDetails userDetails) {
 
         userService.updateProfilePicture(profilePicture, userDetails.getId());
 
         return ResponseEntity
-                .ok()
-                .body(new ApiResponse(true,"Profile picture updated successfully"));
+                .accepted()
+                .body(new ApiResponse(true, "프로필 사진 업데이트 성공!"));
     }
 
-    @GetMapping(value = "/users/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findUser(@PathVariable("username") String username) {
-        log.info("retrieving user {}", username);
-
-        return  userService
-                .findByUsername(username)
-                .map(user -> ResponseEntity.ok(user))
-                .orElseThrow(() -> new ResourceNotFoundException(username));
-    }
-
-    @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> findAll() {
-        log.info("retrieving all users");
-
-        return ResponseEntity
-                .ok(userService.findAll());
-    }
-
-    @GetMapping(value = "/users/me", produces = MediaType.APPLICATION_JSON_VALUE)
+    /**
+     * 프로필 닉네임 업데이트
+     *
+     * @param displayName
+     * @param userDetails
+     * @return
+     */
+    @PutMapping("")
     @PreAuthorize("hasRole('USER')")
-    @ResponseStatus(HttpStatus.OK)
-    public UserSummary getCurrentUser(@AuthenticationPrincipal CartoonUserDetails userDetails) {
-        return UserSummary
+    public ResponseEntity<?> updateProfileDisplayName(
+            @RequestBody String displayName,
+            @AuthenticationPrincipal CartoonUserDetails userDetails) {
+
+        userService.updateProfileDisplayName(displayName, userDetails.getId());
+        return ResponseEntity
+                .accepted()
+                .body(new ApiResponse(true, "프로필 닉네임 업데이트 성공!"));
+
+    }
+
+//    @GetMapping(value = "/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<?> findUser(@PathVariable("username") String username) {
+//        log.info("retrieving user {}", username);
+//
+//        return  userService
+//                .findByUsername(username)
+//                .map(user -> ResponseEntity.ok(user))
+//                .orElseThrow(() -> new ResourceNotFoundException(username));
+//    }
+
+    /**
+     * 본인 데이터 확인
+     *
+     * @param userDetails
+     * @return
+     */
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('USER')")
+//    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getCurrentUser(
+            @AuthenticationPrincipal CartoonUserDetails userDetails) {
+        return ResponseEntity.ok(UserSummary
                 .builder()
                 .id(userDetails.getId())
                 .username(userDetails.getUsername())
                 .name(userDetails.getUserProfile().getDisplayName())
                 .profilePicture(userDetails.getUserProfile().getProfilePictureUrl())
-                .build();
+                .build());
     }
 
-    @GetMapping(value = "/users/summary/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getUserSummary(@PathVariable("username") String username) {
-        log.info("retrieving user {}", username);
+    /**
+     * 유저 1개만 가져오기
+     *
+     * @param username
+     * @return
+     */
+    @GetMapping(value = "/summary/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getUserSummary(
+            @PathVariable("username") String username) {
+        log.info("유저 찾기 -> {}", username);
 
-        return  userService
+        return userService
                 .findByUsername(username)
                 .map(user -> ResponseEntity.ok(userService.convertTo(user)))
                 .orElseThrow(() -> new ResourceNotFoundException(username));
     }
 
-    @PostMapping(value = "/users/summary/in", produces = MediaType.APPLICATION_JSON_VALUE)
+    /**
+     * 유저 여러개 가져오기
+     *
+     * @param usernames
+     * @return
+     */
+    @PostMapping(value = "/summary/in", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUserSummaries(@RequestBody List<String> usernames) {
-        log.info("retrieving summaries for {} usernames", usernames.size());
+        log.info("유저 여러개 찾기 -> {} usernames", usernames.size());
 
         List<UserSummary> summaries =
                 userService
@@ -92,6 +132,26 @@ public class UserController {
 
         return ResponseEntity.ok(summaries);
 
+    }
+
+    @GetMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getTest() {
+        log.info("feign test");
+        return ResponseEntity.ok("Test Page HAHAHHAHAHAH");
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createUser(
+            @RequestBody AuthUserCreateFeignRequest authUserCreateFeignRequest) {
+        log.info("feign test create user");
+        if (authUserCreateFeignRequest.getLbServiceName().equals("AUTH-SERVICE")) {
+            User user = userService.createAuthUser(authUserCreateFeignRequest.getJsonAuthUser());
+            if (user.getId() == null) {
+                return ResponseEntity.badRequest().body("It's not OK!!");
+            }
+            return ResponseEntity.ok("It's OK!");
+        }
+        return ResponseEntity.badRequest().body("It's not OK!!");
     }
 
 }
