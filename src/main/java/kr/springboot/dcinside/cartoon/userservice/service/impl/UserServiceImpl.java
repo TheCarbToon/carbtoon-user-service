@@ -5,14 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.springboot.dcinside.cartoon.userservice.domain.Profile;
 import kr.springboot.dcinside.cartoon.userservice.domain.Role;
 import kr.springboot.dcinside.cartoon.userservice.domain.User;
+import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.UserDisplayNameUpdateFeignRequest;
+import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.UserPasswordUpdateFeignRequest;
+import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.UserProfilePictureUpdateFeignRequest;
 import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.pojo.AuthUserPojo;
+import kr.springboot.dcinside.cartoon.userservice.exception.BadRequestException;
 import kr.springboot.dcinside.cartoon.userservice.exception.ResourceNotFoundException;
-import kr.springboot.dcinside.cartoon.userservice.messaging.UserEventSender;
+import kr.springboot.dcinside.cartoon.userservice.feign.client.AuthServiceClient;
 import kr.springboot.dcinside.cartoon.userservice.payload.UserSummary;
+import kr.springboot.dcinside.cartoon.userservice.repo.ProfileRepository;
 import kr.springboot.dcinside.cartoon.userservice.repo.UserRepository;
 import kr.springboot.dcinside.cartoon.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +30,12 @@ import java.util.Optional;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private final String lbServiceName = "USER-SERVICE";
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final UserEventSender userEventSender;
+    private final ProfileRepository profileRepository;
     private final ObjectMapper objectMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Transactional(readOnly = true)
     @Override
@@ -49,26 +58,62 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateProfileDisplayName(String displayName, Long id) {
-        log.info("업데이트 프로필 닉네임 -> {}, 유저 -> {}", displayName, id);
+    public User updateUserDisplayName(String displayName, Long id) {
+        log.info("유저 닉네임 업데이트 -> {}", id);
         return userProfileDisplayNameUpdate(displayName, id);
     }
 
     @Transactional
     User userProfileDisplayNameUpdate(String displayName, Long id) {
-        String content = "profile displayname";
         return userRepository
                 .findById(id)
                 .map(user -> {
-                    Profile oldProfile = user.getUserProfile();
-                    Profile profile = Profile.builder()
-                            .profilePictureUrl(oldProfile.getProfilePictureUrl())
+
+                    Profile profile = user.getUserProfile();
+
+                    if (!displayName.equals(profile.getDisplayName())) profile.setDisplayName(displayName);
+
+                    profileRepository.save(profile);
+
+                    boolean feignBool = authServiceClient.updateUserDisplayName(UserDisplayNameUpdateFeignRequest.builder()
+                            .lbServiceName(lbServiceName)
                             .displayName(displayName)
-                            .build();
-                    user.setUserProfile(profile);
-                    User savedUser = userRepository.save(user);
-                    userEventSender.sendUserUpdated(savedUser, content);
-                    return savedUser;
+                            .id(user.getAuthId())
+                            .build());
+
+                    if (!feignBool) throw new BadRequestException("/auth/users/displayname feign failure error");
+
+                    return user;
+                })
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(String.format("%s의 사용자를 찾을수 없음.", id)));
+    }
+
+    @Override
+    public User updateUserPassword(String password, Long id) {
+        log.info("유저 패스워드 업데이트 -> {}", id);
+        return userPasswordUpdate(password, id);
+    }
+
+    @Transactional
+    User userPasswordUpdate(String password, Long id) {
+        return userRepository
+                .findById(id)
+                .map(user -> {
+                    if (!passwordEncoder.matches(user.getPassword(), password)) {
+                        user.setPassword(passwordEncoder.encode(password));
+                    }
+                    userRepository.save(user);
+
+                    boolean feignBool = authServiceClient.updateUserPassword(UserPasswordUpdateFeignRequest.builder()
+                            .lbServiceName(lbServiceName)
+                            .password(user.getPassword())
+                            .id(user.getAuthId())
+                            .build());
+
+                    if (!feignBool) throw new BadRequestException("/auth/users/password feign failure error");
+
+                    return user;
                 })
                 .orElseThrow(() ->
                         new ResourceNotFoundException(String.format("%s의 사용자를 찾을수 없음.", id)));
@@ -82,19 +127,27 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     User userProfilePictureUpdate(String uri, Long id) {
-        String content = "프로필 사진";
         return userRepository
                 .findById(id)
                 .map(user -> {
-                    Profile oldProfile = user.getUserProfile();
-                    Profile profile = Profile.builder()
-                            .profilePictureUrl(uri)
-                            .displayName(oldProfile.getDisplayName())
-                            .build();
-                    user.setUserProfile(profile);
-                    User savedUser = userRepository.save(user);
-                    userEventSender.sendUserUpdated(savedUser, content);
-                    return savedUser;
+
+                    Profile profile = user.getUserProfile();
+
+                    if (!profile.getProfilePictureUrl().equals(uri)) {
+                        profile.setProfilePictureUrl(uri);
+                    }
+
+                    profileRepository.save(profile);
+
+                    boolean feignBool = authServiceClient.updateUserProfilePicture(UserProfilePictureUpdateFeignRequest.builder()
+                            .lbServiceName(lbServiceName)
+                            .profilePictureUri(uri)
+                            .id(user.getAuthId())
+                            .build());
+
+                    if (!feignBool) throw new BadRequestException("/auth/users/profile-picture feign failure error");
+
+                    return user;
                 })
                 .orElseThrow(() ->
                         new ResourceNotFoundException(String.format("%s의 사용자를 찾을수 없음.", id)));
@@ -110,7 +163,10 @@ public class UserServiceImpl implements UserService {
                 .authId(authUserPojo.getId())
                 .roles(Role.USER)
                 .build();
-        Profile profile = Profile.builder().user(user).build();
+        Profile profile = Profile.builder()
+                .displayName(authUserPojo.getUserProfile().getDisplayName())
+                .profilePictureUrl("")
+                .user(user).build();
         user.setUserProfile(profile);
         user = userRepository.save(user);
         return user;

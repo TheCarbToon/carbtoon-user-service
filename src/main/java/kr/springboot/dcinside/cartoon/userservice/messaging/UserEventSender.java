@@ -9,27 +9,28 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
+@Deprecated
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class UserEventSender {
 
-    private final UserEventProducer userEventProducer;
+    /*private final UserEventProducer userEventProducer;
 
-    public void sendUserUpdated(User user) {
-        log.info("sending user updated event for user {}", user.getUsername());
-        sendUserChangedEvent(convertTo(user, UserEventType.UPDATED));
+    public void sendUserUpdated(User user, String updateContent) {
+        log.info("sending user updated ({}) event for user {}", updateContent, user.getUsername());
+        sendUserChangedEvent(convertTo(user, UserEventType.UPDATE));
     }
 
-    public void sendUserUpdated(User user, String oldPicUrl) {
-        log.info("sending user updated (profile pic changed) event for user {}",
-                user.getUsername());
-
-        UserEventPayload payload = convertTo(user, UserEventType.UPDATED);
-        payload.setOldProfilePicUrl(oldPicUrl);
-
-        sendUserChangedEvent(payload);
-    }
+//    public void sendUserUpdated(User user, String oldPicUrl) {
+//        log.info("sending user updated (profile pic changed) event for user {}",
+//                user.getUsername());
+//
+//        UserEventPayload payload = convertTo(user, UserEventType.UPDATED);
+//        payload.setOldProfilePicUrl(oldPicUrl);
+//
+//        sendUserChangedEvent(payload);
+//    }
 
     private void sendUserChangedEvent(UserEventPayload payload) {
 
@@ -57,6 +58,6 @@ public class UserEventSender {
                 .displayName(user.getUserProfile().getDisplayName())
                 .profilePictureUrl(user.getUserProfile().getProfilePictureUrl()).build();
 
-    }
+    }*/
 
 }

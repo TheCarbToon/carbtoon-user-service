@@ -4,6 +4,7 @@ import kr.springboot.dcinside.cartoon.userservice.domain.CartoonUserDetails;
 import kr.springboot.dcinside.cartoon.userservice.domain.User;
 import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.AuthUserCreateFeignRequest;
 import kr.springboot.dcinside.cartoon.userservice.dto.response.ApiResponse;
+import kr.springboot.dcinside.cartoon.userservice.dto.response.Result;
 import kr.springboot.dcinside.cartoon.userservice.exception.ResourceNotFoundException;
 import kr.springboot.dcinside.cartoon.userservice.payload.*;
 import kr.springboot.dcinside.cartoon.userservice.service.UserService;
@@ -14,7 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,16 +56,38 @@ public class UserController {
      * @param userDetails
      * @return
      */
-    @PutMapping("")
+    @PutMapping("/displayname")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> updateProfileDisplayName(
+    public ResponseEntity<?> updateUserDisplayName(
             @RequestBody String displayName,
             @AuthenticationPrincipal CartoonUserDetails userDetails) {
 
-        userService.updateProfileDisplayName(displayName, userDetails.getId());
+        userService.updateUserDisplayName(displayName, userDetails.getId());
+
         return ResponseEntity
                 .accepted()
                 .body(new ApiResponse(true, "프로필 닉네임 업데이트 성공!"));
+
+    }
+
+    /**
+     * 유저 패스워드 업데이트
+     *
+     * @param password
+     * @param userDetails
+     * @return
+     */
+    @PutMapping("/password")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> updateUserPassword(
+            @RequestBody String password,
+            @AuthenticationPrincipal CartoonUserDetails userDetails) {
+
+        userService.updateUserPassword(password, userDetails.getId());
+
+        return ResponseEntity
+                .accepted()
+                .body(new ApiResponse(true, "비밀번호 업데이트 성공!"));
 
     }
 
@@ -84,7 +109,6 @@ public class UserController {
      */
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasRole('USER')")
-//    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<?> getCurrentUser(
             @AuthenticationPrincipal CartoonUserDetails userDetails) {
         return ResponseEntity.ok(UserSummary
@@ -137,21 +161,21 @@ public class UserController {
     @GetMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getTest() {
         log.info("feign test");
-        return ResponseEntity.ok("Test Page HAHAHHAHAHAH");
+        return ResponseEntity.ok(new Result("Test Page HAHAHHAHAHAH"));
     }
 
-    @PostMapping("/create")
+    @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createUser(
             @RequestBody AuthUserCreateFeignRequest authUserCreateFeignRequest) {
         log.info("feign test create user");
         if (authUserCreateFeignRequest.getLbServiceName().equals("AUTH-SERVICE")) {
             User user = userService.createAuthUser(authUserCreateFeignRequest.getJsonAuthUser());
             if (user.getId() == null) {
-                return ResponseEntity.badRequest().body("It's not OK!!");
+                return ResponseEntity.badRequest().body(new Result("It's not OK!!"));
             }
-            return ResponseEntity.ok("It's OK!");
+            return ResponseEntity.ok(new Result("It's OK!"));
         }
-        return ResponseEntity.badRequest().body("It's not OK!!");
+        return ResponseEntity.badRequest().body(new Result("It's not OK!!"));
     }
 
 }

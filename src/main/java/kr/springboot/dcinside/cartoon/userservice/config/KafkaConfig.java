@@ -14,10 +14,11 @@ import org.springframework.messaging.Message;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+@Deprecated
+//@Configuration
 public class KafkaConfig {
 
-    private final String BOOTSTRAP_SERVERS_LOCATION = "localhost:9092";
+    /*private final String BOOTSTRAP_SERVERS_LOCATION = "localhost:9094";
 
     @Bean
     public KafkaTemplate<String, Message> kafkaTemplate() {
@@ -28,12 +29,13 @@ public class KafkaConfig {
     public ProducerFactory<String, Message> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_LOCATION);
+        configs.put(ConsumerConfig.GROUP_ID_CONFIG, "logstash");
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return new DefaultKafkaProducerFactory<>(configs);
     }
 
-    @Bean
+    @Bean @Deprecated
     public ConsumerFactory<String, Message> consumerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_LOCATION);
@@ -43,11 +45,11 @@ public class KafkaConfig {
         return new DefaultKafkaConsumerFactory<>(configs);
     }
 
-    @Bean
+    @Bean @Deprecated
     public ConcurrentKafkaListenerContainerFactory<String, Message> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Message> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
-    }
+    }*/
 
 }

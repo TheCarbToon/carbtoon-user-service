@@ -1,8 +1,6 @@
 package kr.springboot.dcinside.cartoon.userservice.service;
 
 import kr.springboot.dcinside.cartoon.userservice.domain.User;
-import kr.springboot.dcinside.cartoon.userservice.dto.feign.request.pojo.AuthUserPojo;
-import kr.springboot.dcinside.cartoon.userservice.dto.response.ApiResponse;
 import kr.springboot.dcinside.cartoon.userservice.payload.UserSummary;
 
 import java.util.List;
@@ -16,7 +14,9 @@ public interface UserService {
 
     List<User> findByUsernameIn(List<String> usernames);
 
-    User updateProfileDisplayName(String uri, Long id);
+    User updateUserDisplayName(String displayName, Long id);
+
+    User updateUserPassword(String password, Long id);
 
     User updateProfilePicture(String uri, Long id);
 

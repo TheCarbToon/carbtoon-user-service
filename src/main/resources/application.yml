@@ -24,6 +24,29 @@ spring:
         default_batch_fetch_size: 1000
         format_sql: true
 
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+
+    function:
+      definition: carbtoonAuth
+    stream:
+      kafka:
+        bindings:
+          carbtoonAuth-out-0:
+            producer:
+              configuration:
+                key:
+                  serializer: org.apache.kafka.common.serialization.StringSerializer
+        binder:
+          brokers: localhost:9094
+      bindings:
+        carbtoonAuth-out-0: # (1)
+          destination: carbtoon.user # topic
+          contentType: application/json
+
 eureka:
   client:
     service-url:

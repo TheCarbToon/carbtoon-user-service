@@ -6,11 +6,12 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
+@Deprecated
 @Component
 @Getter
 public class UserEventProducer {
 
-    private KafkaTemplate<String, Message> kafkaTemplate;
+    /*private KafkaTemplate<String, Message> kafkaTemplate;
     private final String KAFKA_TOPIC = "carbtoon.user.update";
 
     public UserEventProducer() {
@@ -19,6 +20,6 @@ public class UserEventProducer {
 
     public void send(Message message) {
         kafkaTemplate.send(KAFKA_TOPIC, message);
-    }
+    }*/
 
 }

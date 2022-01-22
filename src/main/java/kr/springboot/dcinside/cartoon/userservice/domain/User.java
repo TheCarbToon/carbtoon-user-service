@@ -82,4 +82,8 @@ public class User {
         this.roles = roles;
     }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }
