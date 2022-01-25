@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.messaging.Message;
 
+@Deprecated
 public abstract class ObjectMapperProvider {
 
     @SneakyThrows

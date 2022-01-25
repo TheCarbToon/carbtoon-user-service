@@ -49,7 +49,7 @@ public class SecurityCredentialsConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .addFilterBefore(jwtTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/users/create").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/users/create").permitAll()
                 .anyRequest().authenticated();
     }
 

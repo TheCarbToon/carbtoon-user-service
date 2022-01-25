@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @Slf4j
 public class UserController {
 
@@ -167,7 +167,7 @@ public class UserController {
     @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createUser(
             @RequestBody AuthUserCreateFeignRequest authUserCreateFeignRequest) {
-        log.info("feign test create user");
+        log.info("feign create user");
         if (authUserCreateFeignRequest.getLbServiceName().equals("AUTH-SERVICE")) {
             User user = userService.createAuthUser(authUserCreateFeignRequest.getJsonAuthUser());
             if (user.getId() == null) {
